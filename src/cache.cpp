@@ -30,7 +30,6 @@
 #include "bitmap.h"
 #include "output.h"
 #include "player.h"
-#include "data.h"
 
 namespace {
 	typedef std::pair<std::string,std::string> string_pair;
@@ -351,21 +350,4 @@ void Cache::Clear() {
 	}
 
 	cache_tiles.clear();
-}
-
-void Cache::SetSystemName(std::string const& filename) {
-	system_name = filename;
-}
-
-BitmapRef Cache::System() {
-	if (!system_name.empty()) {
-		return Cache::System(system_name);
-	} else {
-		if (!Data::system.system_name.empty()) {
-			// Load the system file for the shadow and text color
-			return Cache::System(Data::system.system_name);
-		} else {
-			return Bitmap::Create(160, 80, false);
-		}
-	}
 }

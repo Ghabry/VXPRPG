@@ -23,10 +23,8 @@
 #include "transition.h"
 #include "baseui.h"
 #include "bitmap.h"
-#include "game_player.h"
 #include "graphics.h"
 #include "main_data.h"
-#include "scene.h"
 #include "drawable.h"
 
 Transition::Transition() {
@@ -60,7 +58,7 @@ void Transition::AppendBefore(Color color, int duration, int iterations) {
 	total_frames += flash_duration * flash_iterations;
 }
 
-void Transition::Init(TransitionType type, Scene *linked_scene, int duration, bool erase) {
+void Transition::Init(TransitionType type, int duration, bool erase) {
 	if (!black_screen && DisplayUi) {
 		black_screen = Bitmap::Create(DisplayUi->GetWidth(), DisplayUi->GetHeight(), Color(0, 0, 0, 255));
 		Graphics::RegisterDrawable(this);
@@ -80,7 +78,6 @@ void Transition::Init(TransitionType type, Scene *linked_scene, int duration, bo
 	screen2 = erase ? black_screen : frozen_screen;
 
 	transition_type = type;
-	scene = linked_scene;
 	screen_erased = erase;
 	old_frozen_screen = nullptr;
 
@@ -130,14 +127,8 @@ void Transition::SetAttributesTransitions() {
 		break;
 	case TransitionZoomIn:
 	case TransitionZoomOut:
-		if (scene != nullptr && scene->type == Scene::Map) {
-			zoom_position[0] = std::max(0, std::min(Main_Data::game_player->GetScreenX(), (int)DisplayUi->GetWidth()));
-			zoom_position[1] = std::max(0, std::min(Main_Data::game_player->GetScreenY() - 8, (int)DisplayUi->GetHeight()));
-		}
-		else {
-			zoom_position[0] = DisplayUi->GetWidth() / 2;
-			zoom_position[1] = DisplayUi->GetHeight() / 2;
-		}
+		zoom_position[0] = DisplayUi->GetWidth() / 2;
+		zoom_position[1] = DisplayUi->GetHeight() / 2;
 		break;
 	default:
 		// do nothing, keep the compiler happy

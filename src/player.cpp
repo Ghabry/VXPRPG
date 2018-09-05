@@ -49,29 +49,11 @@
 #include "audio.h"
 #include "cache.h"
 #include "filefinder.h"
-#include "game_actors.h"
-#include "game_map.h"
-#include "game_message.h"
-#include "game_enemyparty.h"
-#include "game_party.h"
-#include "game_player.h"
-#include "game_switches.h"
-#include "game_system.h"
-#include "game_temp.h"
-#include "game_variables.h"
 #include "graphics.h"
-#include "inireader.h"
 #include "input.h"
-#include "ldb_reader.h"
-#include "lmt_reader.h"
-#include "lsd_reader.h"
 #include "main_data.h"
 #include "output.h"
 #include "player.h"
-#include "reader_lcf.h"
-#include "reader_util.h"
-#include "scene_battle.h"
-#include "scene_logo.h"
 #include "utils.h"
 #include "version.h"
 
@@ -197,9 +179,6 @@ void Player::Init(int argc, char *argv[]) {
 }
 
 void Player::Run() {
-	Scene::Push(std::shared_ptr<Scene>(static_cast<Scene*>(new Scene_Logo())));
-	Graphics::UpdateSceneCallback();
-
 	reset_flag = false;
 
 	// Reset frames before starting
@@ -218,18 +197,14 @@ void Player::Run() {
 	while (appletMainLoop() && (Graphics::IsTransitionPending() || Scene::instance->type != Scene::Null))
 		MainLoop();
 #else
-	while (Graphics::IsTransitionPending() || Scene::instance->type != Scene::Null)
+	while (true)
 		MainLoop();
 #endif
 }
 
 void Player::MainLoop() {
-	Scene::instance->MainFunction();
-
-	Scene::old_instances.clear();
-
-	if (!Graphics::IsTransitionPending() && Scene::instance->type == Scene::Null) {
-		Exit();
+	if (!Graphics::IsTransitionPending()) {
+		//Exit();
 	}
 }
 
@@ -289,9 +264,9 @@ void Player::Update(bool update_scene) {
 	DisplayUi->ProcessEvents();
 
 	if (exit_flag) {
-		Scene::PopUntil(Scene::Null);
+		//Scene::PopUntil(Scene::Null);
 	} else if (reset_flag) {
-		reset_flag = false;
+		/*reset_flag = false;
 		if (Scene::Find(Scene::Title) && Scene::instance->type != Scene::Title) {
 			Scene::PopUntil(Scene::Title);
 			// Fade out music and stop sound effects before returning
@@ -299,27 +274,25 @@ void Player::Update(bool update_scene) {
 			Audio().SE_Stop();
 			// Do not update this scene until it's properly set up in the next main loop
 			update_scene = false;
-		}
+		}*/
 	}
 
 	Audio().Update();
 	Input::Update();
-
-	std::shared_ptr<Scene> old_instance = Scene::instance;
 
 	int speed_modifier = GetSpeedModifier();
 
 	for (int i = 0; i < speed_modifier; ++i) {
 		Graphics::Update();
 		if (update_scene) {
-			Scene::instance->Update();
+			//Scene::instance->Update();
 			++frames;
 
 			// Scene changed or webplayer waits for files.
 			// Not save to Update again, setup code must run:
-			if (&*old_instance != &*Scene::instance || AsyncHandler::IsImportantFilePending()) {
-				break;
-			}
+			//if (&*old_instance != &*Scene::instance || AsyncHandler::IsImportantFilePending()) {
+			//	break;
+			//}
 		}
 	}
 
@@ -605,13 +578,9 @@ void Player::ParseCommandLine(int argc, char *argv[]) {
 	}
 }
 
-static void OnSystemFileReady(FileRequestResult* result) {
-	Game_System::SetSystemName(result->file);
-}
-
 void Player::CreateGameObjects() {
-	GetEncoding();
-	escape_symbol = ReaderUtil::Recode("\\", encoding);
+	//GetEncoding();
+	escape_symbol = "\\";//ReaderUtil::Recode("\\", encoding);
 	if (escape_symbol.empty()) {
 		Output::Error("Invalid encoding: %s.", encoding.c_str());
 	}
@@ -625,17 +594,6 @@ void Player::CreateGameObjects() {
 		Output::Debug("Using %s as Save directory", save_path.c_str());
 	}
 
-	LoadDatabase();
-
-	std::string ini_file = FileFinder::FindDefault(INI_NAME);
-
-	INIReader ini(ini_file);
-	if (ini.ParseError() != -1) {
-		std::string title = ini.Get("RPG_RT", "GameTitle", GAME_TITLE);
-		game_title = ReaderUtil::Recode(title, encoding);
-		no_rtp_flag = ini.Get("RPG_RT", "FullPackageFlag", "0") == "1"? true : no_rtp_flag;
-	}
-
 	std::stringstream title;
 	if (!game_title.empty()) {
 		Output::Debug("Loading game %s", game_title.c_str());
@@ -646,47 +604,6 @@ void Player::CreateGameObjects() {
 	title << GAME_TITLE;
 	DisplayUi->SetTitle(title.str());
 
-	if (engine == EngineNone) {
-		if (Data::system.ldb_id == 2003) {
-			engine = EngineRpg2k3;
-
-			if (FileFinder::FindDefault("ultimate_rt_eb.dll").empty()) {
-				// Heuristic: Detect if game was converted from 2000 to 2003 and
-				// no typical 2003 feature was used at all (breaks .flow e.g.)
-				if (Data::classes.size() == 1 &&
-					Data::classes[0].name.empty() &&
-					Data::system.menu_commands.empty() &&
-					Data::system.system2_name.empty() &&
-					Data::battleranimations.size() == 1 &&
-					Data::battleranimations[0].name.empty()) {
-					engine = EngineRpg2k;
-					Output::Debug("Using RPG2k Interpreter (heuristic)");
-				} else {
-					Output::Debug("Using RPG2k3 Interpreter");
-				}
-			} else {
-				engine |= EngineEnglish;
-				Output::Debug("Using RPG2k3 (English release, v1.11) Interpreter");
-			}
-		} else {
-			engine = EngineRpg2k;
-			Output::Debug("Using RPG2k Interpreter");
-			if (Data::data.version >= 1) {
-				engine |= EngineEnglish | EngineMajorUpdated;
-				Output::Debug("RM2k >= v.1.61 (English release) detected");
-			}
-		}
-		if (!(engine & EngineMajorUpdated)) {
-			if (FileFinder::IsMajorUpdatedTree()) {
-				engine |= EngineMajorUpdated;
-				Output::Debug("RPG2k >= v1.50 / RPG2k3 >= v1.05 detected");
-			} else {
-				Output::Debug("RPG2k < v1.50 / RPG2k3 < v1.05 detected");
-			}
-		}
-	}
-	Output::Debug("Engine configured as: 2k=%d 2k3=%d 2k3Legacy=%d MajorUpdated=%d Eng=%d", Player::IsRPG2k(), Player::IsRPG2k3(), Player::IsRPG2k3Legacy(), Player::IsMajorUpdatedVersion(), Player::IsEnglish());
-
 	if (!no_rtp_flag) {
 		FileFinder::InitRtpPaths();
 	}
@@ -695,215 +612,7 @@ void Player::CreateGameObjects() {
 }
 
 void Player::ResetGameObjects() {
-	if (Data::system.system_name != Game_System::GetSystemName()) {
-		FileRequestAsync* request = AsyncHandler::RequestFile("System", Data::system.system_name);
-		request->SetImportantFile(true);
-		system_request_id = request->Bind(&OnSystemFileReady);
-		request->Start();
-	}
-
-	// The init order is important
-	Main_Data::Cleanup();
-
-	Main_Data::game_data.Setup();
-	// Prevent a crash when Game_Map wants to reset the screen content
-	// because Setup() modified pictures array
-	Main_Data::game_screen.reset(new Game_Screen());
-
-	Game_Actors::Init();
-	Game_Map::Init();
-	Game_Message::Init();
-	Game_Switches.Reset();
-	Game_System::Init();
-	Game_Temp::Init();
-	Game_Variables.Reset();
-
-	Main_Data::game_enemyparty.reset(new Game_EnemyParty());
-	Main_Data::game_party.reset(new Game_Party());
-	Main_Data::game_player.reset(new Game_Player());
-
 	FrameReset();
-}
-
-void Player::LoadDatabase() {
-	// Load Database
-	Data::Clear();
-
-	if (!FileFinder::IsRPG2kProject(*FileFinder::GetDirectoryTree()) &&
-		!FileFinder::IsEasyRpgProject(*FileFinder::GetDirectoryTree())) {
-		// Unlikely to happen because of the game browser only launches valid games
-
-		Output::Debug("%s is not a supported project", Main_Data::GetProjectPath().c_str());
-
-		Output::Error("%s\n\n%s\n\n%s\n\n%s","No valid game was found.",
-			"EasyRPG must be run from a game folder containing\nRPG_RT.ldb and RPG_RT.lmt.",
-			"This engine only supports RPG Maker 2000 and 2003\ngames.",
-			"RPG Maker XP, VX, VX Ace and MV are NOT supported.");
-	}
-
-	// Try loading EasyRPG project files first, then fallback to normal RPG Maker
-	std::string edb = FileFinder::FindDefault(DATABASE_NAME_EASYRPG);
-	std::string emt = FileFinder::FindDefault(TREEMAP_NAME_EASYRPG);
-
-	bool easyrpg_project = !edb.empty() && !emt.empty();
-
-	if (easyrpg_project) {
-		if (!LDB_Reader::LoadXml(edb)) {
-			Output::ErrorStr(LcfReader::GetError());
-		}
-		if (!LMT_Reader::LoadXml(emt)) {
-			Output::ErrorStr(LcfReader::GetError());
-		}
-	}
-	else {
-		std::string ldb = FileFinder::FindDefault(DATABASE_NAME);
-		std::string lmt = FileFinder::FindDefault(TREEMAP_NAME);
-
-		if (!LDB_Reader::Load(ldb, encoding)) {
-			Output::ErrorStr(LcfReader::GetError());
-		}
-		if (!LMT_Reader::Load(lmt, encoding)) {
-			Output::ErrorStr(LcfReader::GetError());
-		}
-	}
-}
-
-static void OnMapSaveFileReady(FileRequestResult*) {
-	Game_Map::SetupFromSave();
-
-	Main_Data::game_player->MoveTo(
-		Main_Data::game_data.party_location.position_x,
-		Main_Data::game_data.party_location.position_y
-		);
-	Main_Data::game_player->Refresh();
-
-	RPG::Music current_music = Main_Data::game_data.system.current_music;
-	Game_System::BgmStop();
-	Game_System::BgmPlay(current_music);
-}
-
-void Player::LoadSavegame(const std::string& save_name) {
-	std::unique_ptr<RPG::Save> save = LSD_Reader::Load(save_name, encoding);
-
-	if (!save.get()) {
-		Output::Error("%s", LcfReader::GetError().c_str());
-	}
-
-	Main_Data::game_data = *save.get();
-	Main_Data::game_data.system.Fixup();
-
-	Game_Actors::Fixup();
-	Main_Data::game_party->RemoveInvalidData();
-
-	int map_id = save->party_location.map_id;
-
-	FileRequestAsync* map = Game_Map::RequestMap(map_id);
-	save_request_id = map->Bind(&OnMapSaveFileReady);
-	map->SetImportantFile(true);
-
-	FileRequestAsync* system = AsyncHandler::RequestFile("System", Game_System::GetSystemName());
-	system->SetImportantFile(true);
-	system_request_id = system->Bind(&OnSystemFileReady);
-
-	map->Start();
-	system->Start();
-}
-
-static void OnMapFileReady(FileRequestResult*) {
-	int map_id = Player::start_map_id == -1 ?
-		Data::treemap.start.party_map_id : Player::start_map_id;
-	int x_pos = Player::party_x_position == -1 ?
-		Data::treemap.start.party_x : Player::party_x_position;
-	int y_pos = Player::party_y_position == -1 ?
-		Data::treemap.start.party_y : Player::party_y_position;
-	if (Player::party_members.size() > 0) {
-		Main_Data::game_party->Clear();
-		std::vector<int>::iterator member;
-		for (member = Player::party_members.begin(); member != Player::party_members.end(); ++member) {
-			Main_Data::game_party->AddActor(*member);
-		}
-	}
-
-	Game_Map::Setup(map_id);
-	Main_Data::game_player->MoveTo(x_pos, y_pos);
-	Main_Data::game_player->Refresh();
-	Game_Map::PlayBgm();
-}
-
-void Player::SetupPlayerSpawn() {
-	int map_id = Player::start_map_id == -1 ?
-		Data::treemap.start.party_map_id : Player::start_map_id;
-
-	FileRequestAsync* request = Game_Map::RequestMap(map_id);
-	map_request_id = request->Bind(&OnMapFileReady);
-	request->SetImportantFile(true);
-	request->Start();
-}
-
-std::string Player::GetEncoding() {
-	encoding = forced_encoding;
-
-	// command line > ini > detection > current locale
-	if (encoding.empty()) {
-		std::string ini = FileFinder::FindDefault(INI_NAME);
-		encoding = ReaderUtil::GetEncoding(ini);
-	}
-
-	if (encoding.empty() || encoding == "auto") {
-		encoding = "";
-
-		std::string ldb = FileFinder::FindDefault(DATABASE_NAME);
-
-		std::vector<std::string> encodings;
-		std::ifstream is(ldb, std::ios::binary);
-		// Stream required due to a liblcf api change:
-		// When a string is passed the encoding of the string is detected
-		if (is) {
-			encodings = ReaderUtil::DetectEncodings(is);
-		}
-
-#ifndef EMSCRIPTEN
-		for (std::string& enc : encodings) {
-			// Heuristic: Check if encoded title and system name matches the one on the filesystem
-			// When yes is a good encoding. Otherwise try the next ones.
-
-			escape_symbol = ReaderUtil::Recode("\\", enc);
-			if (escape_symbol.empty()) {
-				// Bad encoding
-				Output::Debug("Bad encoding: %s. Trying next.", enc.c_str());
-				continue;
-			}
-
-			if ((Data::system.title_name.empty() ||
-					!FileFinder::FindImage("Title", ReaderUtil::Recode(Data::system.title_name, enc)).empty()) &&
-				(Data::system.system_name.empty() ||
-					!FileFinder::FindImage("System", ReaderUtil::Recode(Data::system.system_name, enc)).empty())) {
-				// Looks like a good encoding
-				encoding = enc;
-				break;
-			} else {
-				Output::Debug("Detected encoding: %s. Files not found. Trying next.", enc.c_str());
-			}
-		}
-#endif
-
-		if (!encodings.empty() && encoding.empty()) {
-			// No encoding found that matches the files, maybe RTP missing.
-			// Use the first one instead
-			encoding = encodings[0];
-		}
-
-		escape_symbol = "";
-
-		if (!encoding.empty()) {
-			Output::Debug("Detected encoding: %s", encoding.c_str());
-		} else {
-			Output::Debug("Encoding not detected");
-			encoding = ReaderUtil::GetLocaleEncoding();
-		}
-	}
-
-	return encoding;
 }
 
 int Player::GetSpeedModifier() {

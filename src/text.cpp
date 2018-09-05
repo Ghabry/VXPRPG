@@ -16,14 +16,12 @@
  */
 
 // Headers
-#include "data.h"
 #include "cache.h"
 #include "output.h"
 #include "utils.h"
 #include "bitmap.h"
 #include "font.h"
 #include "text.h"
-#include "game_system.h"
 
 #include <cctype>
 #include <iterator>
@@ -51,7 +49,7 @@ void Text::Draw(Bitmap& dest, int x, int y, int color, FontRef font, std::string
 	text_surface = Bitmap::Create(dst_rect.width, dst_rect.height, true);
 	text_surface->Clear();
 
-	BitmapRef system = Cache::System();
+	BitmapRef system = Bitmap::Create(320, 240, true);
 
 	// Where to draw the next glyph (x pos)
 	int next_glyph_pos = 0;
@@ -121,7 +119,7 @@ void Text::Draw(Bitmap& dest, int x, int y, Color color, FontRef font, std::stri
 		Rect next_glyph_rect(x + next_glyph_pos, y, 0, 0);
 
 		font->Render(dest, next_glyph_rect.x, next_glyph_rect.y, color, c);
-		
+
 		next_glyph_pos += font->GetSize(glyph).width;
 	}
 }

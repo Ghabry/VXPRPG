@@ -21,10 +21,9 @@
 // Headers
 #include <vector>
 #include <string>
+#include "color.h"
 #include "drawable.h"
 #include "system.h"
-#include "scene.h"
-
 
 /**
  * Transition class.
@@ -77,16 +76,15 @@ public:
 
 	int GetZ() const override;
 	DrawableType GetType() const override;
-	
+
 	/**
 	 * Defines a screen transition.
 	 *
 	 * @param type transition type.
-	 * @param linked_scene scene transitioning, it should be either the scene summoning (this) or the current instance (Scene::instance.get())
 	 * @param duration transition duration.
 	 * @param erase erase screen flag.
 	 */
-	void Init(TransitionType type, Scene *linked_scene, int duration, bool erase = false);
+	void Init(TransitionType type, int duration, bool erase = false);
 
 	void AppendBefore(Color color, int duration, int iterations);
 
@@ -111,7 +109,6 @@ private:
 	BitmapRef random_block_transition;
 
 	TransitionType transition_type;
-	Scene *scene;
 	int current_frame;
 	int total_frames;
 	bool screen_erased;

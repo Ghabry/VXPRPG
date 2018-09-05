@@ -21,7 +21,6 @@
 #include "player.h"
 #include "graphics.h"
 #include "bitmap.h"
-#include "game_message.h"
 
 MessageOverlay::MessageOverlay() :
 	type(TypeOverlay),
@@ -88,6 +87,45 @@ DrawableType MessageOverlay::GetType() const {
 	return type;
 }
 
+static int WordWrap(const std::string& line, int limit, const std::function<void(const std::string &line)> callback) {
+	size_t start = 0;
+	size_t lastfound = 0;
+	int line_count = 0;
+	bool end_of_string;
+	FontRef font = Font::Default();
+	Rect size;
+
+	do {
+		line_count++;
+		size_t found = line.find(" ", start);
+		std::string wrapped = line.substr(start, found - start);
+		end_of_string = false;
+		do {
+			lastfound = found;
+			found = line.find(" ", lastfound + 1);
+			if (found == std::string::npos) {
+				found = line.size();
+			}
+			wrapped = line.substr(start, found - start);
+			size = font->GetSize(wrapped);
+		} while (found < line.size() - 1 && size.width < limit);
+		if (found >= line.size() - 1) {
+			// It's end of the string, not a word-break
+			if (size.width < limit) {
+				// And the last word of the string fits on the line
+				// (otherwise do another word-break)
+				lastfound = found;
+				end_of_string = true;
+			}
+		}
+		wrapped = line.substr(start, lastfound - start);
+		callback(wrapped);
+		start = lastfound + 1;
+	} while (start < line.size() && !end_of_string);
+
+	return line_count;
+}
+
 void MessageOverlay::AddMessage(const std::string& message, Color color) {
 	if (message == last_message) {
 		// The message matches the previous message -> increase counter
@@ -102,7 +140,7 @@ void MessageOverlay::AddMessage(const std::string& message, Color color) {
 
 	last_message = message;
 
-	Game_Message::WordWrap(
+	WordWrap(
 			message,
 			SCREEN_TARGET_WIDTH - 6, // hardcoded to screen width because the bitmap is not initialized early enough
 			[&](const std::string& line) {

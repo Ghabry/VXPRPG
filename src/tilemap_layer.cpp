@@ -24,7 +24,6 @@
 #include "player.h"
 #include "map_data.h"
 #include "bitmap.h"
-#include "game_map.h"
 
 // Blocks subtiles IDs
 // Mess with this code and you will die in 3 days...
@@ -207,8 +206,6 @@ void TilemapLayer::Draw(int z_order) {
 			// Get the real maps tile coordinates
 			int map_x = div_rounding_down(ox, TILE_SIZE) + x;
 			int map_y = div_rounding_down(oy, TILE_SIZE) + y;
-			if (Game_Map::LoopHorizontal()) map_x = mod(map_x, width);
-			if (Game_Map::LoopVertical()) map_y = mod(map_y, height);
 
 			int map_draw_x = x * TILE_SIZE - mod(ox, TILE_SIZE);
 			int map_draw_y = y * TILE_SIZE - mod(oy, TILE_SIZE);

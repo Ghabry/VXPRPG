@@ -77,8 +77,6 @@ namespace Graphics {
 
 	void UpdateZCallback();
 
-	void UpdateSceneCallback();
-
 	/**
 	 * Gets target frame rate.
 	 *

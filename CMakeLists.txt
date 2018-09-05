@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 
-project(EasyRPG_Player VERSION 0.5.3 LANGUAGES CXX)
+project(VXPRPG_Player VERSION 0.1.0 LANGUAGES CXX)
 
 # Source Files
 add_library(${PROJECT_NAME}
@@ -13,9 +13,7 @@ add_library(${PROJECT_NAME}
 	src/audio_sdl_mixer.cpp
 	src/audio_sdl.cpp
 	src/audio_secache.cpp
-	src/background.cpp
 	src/baseui.cpp
-	src/battle_animation.cpp
 	src/bitmap.cpp
 	src/cache.cpp
 	src/color.cpp
@@ -31,33 +29,6 @@ add_library(${PROJECT_NAME}
 	src/filefinder.cpp
 	src/font.cpp
 	src/fps_overlay.cpp
-	src/frame.cpp
-	src/game_actor.cpp
-	src/game_actors.cpp
-	src/game_battlealgorithm.cpp
-	src/game_battle.cpp
-	src/game_battler.cpp
-	src/game_character.cpp
-	src/game_commonevent.cpp
-	src/game_enemy.cpp
-	src/game_enemyparty.cpp
-	src/game_event.cpp
-	src/game_interpreter_battle.cpp
-	src/game_interpreter.cpp
-	src/game_interpreter_map.cpp
-	src/game_map.cpp
-	src/game_message.cpp
-	src/game_party_base.cpp
-	src/game_party.cpp
-	src/game_picture.cpp
-	src/game_player.cpp
-	src/game_screen.cpp
-	src/game_switches.cpp
-	src/game_system.cpp
-	src/game_targets.cpp
-	src/game_temp.cpp
-	src/game_variables.cpp
-	src/game_vehicle.cpp
 	src/graphics.cpp
 	src/hslrgb.cpp
 	src/image_bmp.cpp
@@ -78,31 +49,6 @@ add_library(${PROJECT_NAME}
 	src/registry.cpp
 	src/registry_wine.cpp
 	src/rtp_table.cpp
-	src/scene_actortarget.cpp
-	src/scene_battle.cpp
-	src/scene_battle_rpg2k3.cpp
-	src/scene_battle_rpg2k.cpp
-	src/scene.cpp
-	src/scene_debug.cpp
-	src/scene_end.cpp
-	src/scene_equip.cpp
-	src/scene_file.cpp
-	src/scene_gamebrowser.cpp
-	src/scene_gameover.cpp
-	src/scene_item.cpp
-	src/scene_load.cpp
-	src/scene_logo.cpp
-	src/scene_map.cpp
-	src/scene_menu.cpp
-	src/scene_name.cpp
-	src/scene_order.cpp
-	src/scene_save.cpp
-	src/scene_shop.cpp
-	src/scene_skill.cpp
-	src/scene_status.cpp
-	src/scene_teleport.cpp
-	src/scene_title.cpp
-	src/screen.cpp
 	src/sdl_ui.cpp
 	src/sdl2_ui.cpp
 	src/shinonome_gothic.cpp
@@ -110,13 +56,7 @@ add_library(${PROJECT_NAME}
 	src/bitmapfont_wqy.cpp
 	src/bitmapfont_ttyp0.cpp
 	src/bitmapfont_rmg2000.cpp
-	src/sprite_airshipshadow.cpp
-	src/sprite_battler.cpp
-	src/sprite_character.cpp
 	src/sprite.cpp
-	src/spriteset_battle.cpp
-	src/spriteset_map.cpp
-	src/sprite_timer.cpp
 	src/text.cpp
 	src/tilemap.cpp
 	src/tilemap_layer.cpp
@@ -125,43 +65,7 @@ add_library(${PROJECT_NAME}
 	src/utils.cpp
 	src/util_win.cpp
 	src/weather.cpp
-	src/window_about.cpp
-	src/window_actorinfo.cpp
-	src/window_actorstatus.cpp
-	src/window_actortarget.cpp
-	src/window_base.cpp
-	src/window_battlecommand.cpp
-	src/window_battlemessage.cpp
-	src/window_battleoption.cpp
-	src/window_battlestatus.cpp
-	src/window_command.cpp
 	src/window.cpp
-	src/window_equip.cpp
-	src/window_equipitem.cpp
-	src/window_equipstatus.cpp
-	src/window_face.cpp
-	src/window_gamelist.cpp
-	src/window_gold.cpp
-	src/window_help.cpp
-	src/window_item.cpp
-	src/window_keyboard.cpp
-	src/window_menustatus.cpp
-	src/window_message.cpp
-	src/window_name.cpp
-	src/window_numberinput.cpp
-	src/window_savefile.cpp
-	src/window_selectable.cpp
-	src/window_shopbuy.cpp
-	src/window_shop.cpp
-	src/window_shopnumber.cpp
-	src/window_shopparty.cpp
-	src/window_shopsell.cpp
-	src/window_shopstatus.cpp
-	src/window_skill.cpp
-	src/window_skillstatus.cpp
-	src/window_targetstatus.cpp
-	src/window_teleport.cpp
-	src/window_varlist.cpp
 )
 
 include(CMakeDependentOption)
@@ -194,31 +98,6 @@ if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 	if(WORDS_BIGENDIAN)
 		target_compile_definitions(${PROJECT_NAME} PUBLIC WORDS_BIGENDIAN=1)
 	endif()
-endif()
-
-# liblcf
-option(PLAYER_BUILD_LIBLCF "Instead of detecting liblcf the liblcf repository is cloned into lib/liblcf and built together with the Player. This is convenient for development" OFF)
-set(PLAYER_BUILD_LIBLCF_GIT "https://github.com/EasyRPG/liblcf.git" CACHE STRING "Git repository of liblcf to clone when building liblcf. Requires PLAYER_BUILD_LIBLCF=ON.")
-
-if(PLAYER_BUILD_LIBLCF)
-	# liblcf is built as part of this cmake file
-	set(LIBLCF_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/liblcf")
-	find_package(Git REQUIRED)
-	if(NOT EXISTS ${LIBLCF_PATH})
-		execute_process(COMMAND ${GIT_EXECUTABLE} clone "--depth=1"
-			"${PLAYER_BUILD_LIBLCF_GIT}"
-			"${LIBLCF_PATH}")
-	endif()
-	SET(BUILD_SHARED_LIBS OFF CACHE BOOL "Build liblcf shared library")
-	list(APPEND CMAKE_MODULE_PATH
-		"${CMAKE_CURRENT_SOURCE_DIR}/lib/liblcf/builds/cmake/Modules")
-
-	add_subdirectory(${LIBLCF_PATH})
-	target_link_libraries(${PROJECT_NAME} lcf)
-else()
-	# Use system package
-	find_package(liblcf REQUIRED)
-	target_link_libraries(${PROJECT_NAME} liblcf::liblcf)
 endif()
 
 # Detect all required libraries
@@ -394,7 +273,7 @@ endif()
 if(WIN32)
 	set_target_properties(${PROJECT_NAME}_exe PROPERTIES OUTPUT_NAME "Player")
 else()
-	set_target_properties(${PROJECT_NAME}_exe PROPERTIES OUTPUT_NAME "easyrpg-player")
+	set_target_properties(${PROJECT_NAME}_exe PROPERTIES OUTPUT_NAME "vxprpg-player")
 endif()
 
 # Add Windows resources
@@ -492,10 +371,7 @@ endif()
 
 # Print summary
 message(STATUS "")
-if(PLAYER_BUILD_LIBLCF)
-	message(STATUS "liblcf: Built from ${PLAYER_BUILD_LIBLCF_GIT}")
-	message(STATUS "")
-endif()
+
 message(STATUS "Audio backend: ${PLAYER_AUDIO_BACKEND}")
 if(${PLAYER_AUDIO_BACKEND} MATCHES "^SDL2.*$")
 	message(STATUS "")

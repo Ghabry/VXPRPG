@@ -27,7 +27,6 @@
 #include "bitmap.h"
 #include "filefinder.h"
 #include "options.h"
-#include "data.h"
 #include "output.h"
 #include "image_xyz.h"
 #include "image_bmp.h"
@@ -981,7 +980,7 @@ void Bitmap::ToneBlit(int x, int y, Bitmap const& src, Rect const& src_rect, con
 		}
 
 	}
-	
+
 }
 
 void Bitmap::BlendBlit(int x, int y, Bitmap const& src, Rect const& src_rect, const Color& color, Opacity const& opacity) {

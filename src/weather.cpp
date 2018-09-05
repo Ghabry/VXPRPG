@@ -21,7 +21,6 @@
 #include "baseui.h"
 #include "bitmap.h"
 #include "color.h"
-#include "game_screen.h"
 #include "graphics.h"
 #include "main_data.h"
 #include "weather.h"
@@ -48,10 +47,8 @@ void Weather::Update() {
 }
 
 void Weather::Draw() {
-	if (Main_Data::game_screen->GetWeatherType() != Game_Screen::Weather_None) {
-		if (!weather_surface) {
-			weather_surface = Bitmap::Create(SCREEN_TARGET_WIDTH, SCREEN_TARGET_HEIGHT);
-		}
+	if (!weather_surface) {
+		weather_surface = Bitmap::Create(SCREEN_TARGET_WIDTH, SCREEN_TARGET_HEIGHT);
 	}
 
 	if (dirty && weather_surface) {
@@ -59,7 +56,7 @@ void Weather::Draw() {
 		dirty = false;
 	}
 
-	switch (Main_Data::game_screen->GetWeatherType()) {
+	/*switch (Main_Data::game_screen->GetWeatherType()) {
 		case Game_Screen::Weather_None:
 			break;
 		case Game_Screen::Weather_Rain:
@@ -74,7 +71,7 @@ void Weather::Draw() {
 		case Game_Screen::Weather_Sandstorm:
 			DrawSandstorm();
 			break;
-	}
+	}*/
 
 	if (dirty && weather_surface) {
 		BitmapRef dst = DisplayUi->GetDisplaySurface();
@@ -120,7 +117,7 @@ static const uint8_t rain_image[] = {
 static const int snowflake_visible = 150;
 
 void Weather::DrawRain() {
-	if (!rain_bitmap) {
+	/*if (!rain_bitmap) {
 		rain_bitmap = Bitmap::Create(rain_image, sizeof(rain_image));
 		if (tone_effect != Tone()) {
 			rain_bitmap->ToneBlit(0, 0, *rain_bitmap, rain_bitmap->GetRect(), tone_effect, Opacity::opaque, true);
@@ -139,11 +136,11 @@ void Weather::DrawRain() {
 		weather_surface->Blit(f.x - f.y/2, f.y, *rain_bitmap, rect, 96);
 	}
 
-	dirty = true;
+	dirty = true;*/
 }
 
 void Weather::DrawSnow() {
-	if (!snow_bitmap) {
+	/*if (!snow_bitmap) {
 		snow_bitmap = Bitmap::Create(snow_image, sizeof(snow_image));
 		if (tone_effect != Tone()) {
 			snow_bitmap->ToneBlit(0, 0, *snow_bitmap, snow_bitmap->GetRect(), tone_effect, Opacity::opaque, true);
@@ -168,27 +165,27 @@ void Weather::DrawSnow() {
 		weather_surface->Blit(x, y, *snow_bitmap, rect, f.life);
 	}
 
-	dirty = true;
+	dirty = true;*/
 }
 
 void Weather::DrawFog() {
-	static const int opacities[3] = {128, 160, 192};
+	/*static const int opacities[3] = {128, 160, 192};
 	int opacity = opacities[Main_Data::game_screen->GetWeatherStrength()];
 
 	weather_surface->Fill(Color(128, 128, 128, opacity));
 
-	dirty = true;
+	dirty = true;*/
 }
 
 void Weather::DrawSandstorm() {
-	static const int opacities[3] = {128, 160, 192};
+	/*static const int opacities[3] = {128, 160, 192};
 	int opacity = opacities[Main_Data::game_screen->GetWeatherStrength()];
 
 	weather_surface->Fill(Color(192, 160, 128, opacity));
 
 	// TODO
 
-	dirty = true;
+	dirty = true;*/
 }
 
 Tone Weather::GetTone() const {

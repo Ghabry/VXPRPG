@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "system.h"
-#include "game_system.h"
 
 #ifdef HAVE_FREETYPE
 #	include <ft2build.h>
@@ -30,7 +29,6 @@
 #	include FT_MODULE_H
 #endif
 
-#include "reader_util.h"
 #include "bitmapfont.h"
 
 #include "filefinder.h"
@@ -326,7 +324,7 @@ bool FTFont::check_face() {
 #endif
 
 FontRef Font::Default() {
-	return Default(Game_System::GetFontId() == 1);
+	return Default(true);
 }
 
 FontRef Font::Default(bool const m) {
@@ -371,11 +369,6 @@ Rect Font::GetSize(std::string const& txt) const {
 }
 
 void Font::Render(Bitmap& bmp, int const x, int const y, Bitmap const& sys, int color, char32_t code) {
-	if(color != ColorShadow) {
-		BitmapRef system = Cache::System();
-		Render(bmp, x + 1, y + 1, system->GetShadowColor(), code);
-	}
-
 	BitmapRef bm = Glyph(code);
 
 	unsigned const

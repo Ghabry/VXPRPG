@@ -21,7 +21,6 @@
 #include "registry.h"
 #include "filefinder.h"
 #include "output.h"
-#include "inireader.h"
 
 std::string Registry::ReadStrValue(HKEY hkey, std::string const& key, std::string const& val, REGVIEW view) {
 	std::string prefix =
@@ -68,7 +67,7 @@ std::string Registry::ReadStrValue(HKEY hkey, std::string const& key, std::strin
 		int pos = formatted_key.find("\\\\", 0);
 		formatted_key.insert(pos, "\\\\Wow6432Node");
 	}
-
+/*
 	INIReader registry(registry_file);
 	std::string path;
 
@@ -100,8 +99,8 @@ std::string Registry::ReadStrValue(HKEY hkey, std::string const& key, std::strin
 			case 'z': path.assign(string_value.begin() + 2, string_value.end()); break;
 		}
 	}
-
-	return path;
+*/
+	return "";
 }
 
 int Registry::ReadBinValue(HKEY, std::string const&, std::string const&, unsigned char*, REGVIEW) {

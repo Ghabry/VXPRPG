@@ -51,9 +51,6 @@ namespace Cache {
 	BitmapRef Tile(const std::string& filename, int tile_id);
 
 	void Clear();
-
-	BitmapRef System();
-	void SetSystemName(std::string const& filename);
 }
 
 #endif

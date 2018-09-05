@@ -18,14 +18,6 @@
 // Headers
 #include <cstdlib>
 #include "main_data.h"
-#include "game_actors.h"
-#include "game_party.h"
-#include "game_enemyparty.h"
-#include "game_player.h"
-#include "game_screen.h"
-#include "game_map.h"
-#include "game_variables.h"
-#include "game_switches.h"
 #include "font.h"
 #include "player.h"
 
@@ -55,22 +47,8 @@
 #endif
 
 // Global variables.
-
-Game_Variables_Class Game_Variables;
-Game_Switches_Class Game_Switches;
-
 std::string project_path;
 std::string save_path;
-
-namespace Main_Data {
-	// Dynamic Game Data
-	std::unique_ptr<Game_Screen> game_screen;
-	std::unique_ptr<Game_Player> game_player;
-	std::unique_ptr<Game_Party> game_party;
-	std::unique_ptr<Game_EnemyParty> game_enemyparty;
-
-	RPG::Save game_data;
-}
 
 void Main_Data::Init() {
 	if (project_path.empty()) {
@@ -164,15 +142,7 @@ void Main_Data::Init() {
 }
 
 void Main_Data::Cleanup() {
-	Game_Map::Quit();
-	Game_Actors::Dispose();
 
-	game_screen.reset();
-	game_player.reset();
-	game_party.reset();
-	game_enemyparty.reset();
-
-	game_data = RPG::Save();
 }
 
 const std::string& Main_Data::GetProjectPath() {
