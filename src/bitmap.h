@@ -77,6 +77,8 @@ public:
  */
 class Bitmap {
 public:
+	Bitmap();
+
 	/**
 	 * Creates bitmap with empty surface.
 	 *
