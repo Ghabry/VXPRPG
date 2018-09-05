@@ -1,18 +1,18 @@
 /*
- * This file is part of EasyRPG Player.
+ * This file is part of VXPRPG and based on the same file of EasyRPG Player.
  *
- * EasyRPG Player is free software: you can redistribute it and/or modify
+ * VXPRPG Player is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * EasyRPG Player is distributed in the hope that it will be useful,
+ * VXPRPG Player is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with EasyRPG Player. If not, see <http://www.gnu.org/licenses/>.
+ * along with VXPRPG Player. If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef EP_AUDIO_SECACHE_H
@@ -95,7 +95,7 @@ public:
 	 * Sets the pitch multiplier of the internal audio decoder.
 	 * 100 = normal speed
 	 * 200 = double speed and so on
-	 * 
+	 *
 	 * @param pitch Pitch multiplier to use
 	 * @return true if pitch was set, false otherwise
 	 */

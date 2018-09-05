@@ -1,18 +1,18 @@
 /*
- * This file is part of EasyRPG Player.
+ * This file is part of VXPRPG and based on the same file of EasyRPG Player.
  *
- * EasyRPG Player is free software: you can redistribute it and/or modify
+ * VXPRPG Player is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * EasyRPG Player is distributed in the hope that it will be useful,
+ * VXPRPG Player is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with EasyRPG Player. If not, see <http://www.gnu.org/licenses/>.
+ * along with VXPRPG Player. If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef EP_AUDIO_RESAMPLER_H
@@ -43,16 +43,16 @@ public:
 		Medium,
 		Low
 	};
-	
+
 	/**
 	 * Constructs a resampler
-	 * 
+	 *
 	 * @param[in] decoder The decoder which provides samples to the resampler - will be owned by the resampler
-	 * @param[in] pitch_handled Defines whether the decoder handles pitch changes by itself or not. 
+	 * @param[in] pitch_handled Defines whether the decoder handles pitch changes by itself or not.
 	 * @param[in] quality Sets the quality rting of the resampler - higher quality implies slower filtering
 	 */
 	AudioResampler(AudioDecoder * decoder, bool pitch_handled=false, Quality quality=Quality::Medium);
-	
+
 	/**
 	 * Destroys the resampler as well as its owned ressources
 	 */
@@ -68,16 +68,16 @@ public:
 
 	/**
 	 * Wraps the opening function of the contained decoder
-	 * 
+	 *
 	 * @param[in] file Filepointer to a file readable by the wrapped decoder
-	 * 
+	 *
 	 * @return Whether the operation was successful or not
 	 */
 	bool Open(FILE* file) override;
 
 	/**
 	 * Wraps the seek function of the contained decoder
-	 * @note If the seek function of the wrapped decoder is 
+	 * @note If the seek function of the wrapped decoder is
 	 *	somewhat corelated to time the offset is not influenced by the resampling ratio
 	 *
 	 * @param offset Offset to seek to
@@ -100,7 +100,7 @@ public:
 	 * @return Amount of MIDI ticks.
 	 */
 	int GetTicks() const override;
-	
+
 	/**
 	 * Returns wheter the resampled audio stream is finished
 	 *
@@ -118,7 +118,7 @@ public:
 	void GetFormat(int& frequency, AudioDecoder::Format& format, int& channels) const override;
 
 	/**
-	 * Requests a certain frame format from the resampler. 
+	 * Requests a certain frame format from the resampler.
 	 * Supported formats are:
 	 *  * float,int16_t for libspeexdsp
 	 *  * float for libsamplerate
@@ -144,7 +144,7 @@ public:
 	 * 100 = normal speed
 	 * 200 = double speed and so on
 	 * If the pitch is handled by the resampler this setting controls the resampling in conjunction with the frequency.
-	 * 
+	 *
 	 * @param pitch Pitch multiplier to use
 	 * @return true if pitch was set, false otherwise
 	 */
@@ -159,7 +159,7 @@ private:
 	 * @return number of bytes read or -1 on error
 	 */
 	int FillBuffer(uint8_t* buffer, int length) override;
-	
+
 	/**
 	 * Internally used by the FillBuffer function if the output rate equals the input rate
 	 */
@@ -169,7 +169,7 @@ private:
 	 * Internally used by the FillBuffer function if resampling is necessary
 	 */
 	int FillBufferDifferentRate(uint8_t* buffer, int length);
-	
+
 	AudioDecoder * wrapped_decoder;
 	bool pitch_handled_by_decoder;
 	int pitch;
@@ -182,7 +182,7 @@ private:
 	int input_rate;
 	Format output_format;
 	int output_rate;
-	
+
 	#if defined(HAVE_LIBSPEEXDSP)
 		struct {
 			spx_uint32_t input_frames, output_frames;

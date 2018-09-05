@@ -1,18 +1,18 @@
 /*
- * This file is part of EasyRPG Player.
+ * This file is part of VXPRPG and based on the same file of EasyRPG Player.
  *
- * EasyRPG Player is free software: you can redistribute it and/or modify
+ * VXPRPG Player is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * EasyRPG Player is distributed in the hope that it will be useful,
+ * VXPRPG Player is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with EasyRPG Player. If not, see <http://www.gnu.org/licenses/>.
+ * along with VXPRPG Player. If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef PSP2
@@ -78,19 +78,19 @@ namespace {
 }
 
 static int renderThread(unsigned int args, void* arg){
-	
+
 	for (;;){
-	
+
 		sceKernelWaitSema(GPU_Mutex, 1, NULL);
 		memcpy(vita2d_texture_get_datap(gpu_texture), vita2d_texture_get_datap(next_texture), vita2d_texture_get_stride(gpu_texture)*240);
 		sceKernelSignalSema(GPU_Mutex, 1);
-		
+
 		sceKernelWaitSema(GPU_Cleanup_Mutex, 1, NULL);
-		
+
 		if (main_texture == NULL) sceKernelExitDeleteThread(0); // Exit procedure
-		
+
 		vita2d_start_drawing();
-   
+
 		if (set_shader){
 			Output::Post("Shader set to %s.",shader_names[in_use_shader]);
 			set_shader = false;
@@ -99,7 +99,7 @@ static int renderThread(unsigned int args, void* arg){
 			vita2d_texture_set_vertexInput(&shaders[in_use_shader]->vertexInput);
 			vita2d_texture_set_fragmentInput(&shaders[in_use_shader]->fragmentInput);
 		}
-   
+
 		vita2d_clear_screen();
 		switch (zoom_state){
 			case 0: // 640x480
@@ -116,14 +116,14 @@ static int renderThread(unsigned int args, void* arg){
 		vita2d_wait_rendering_done();
 		vita2d_swap_buffers();
 		sceKernelSignalSema(GPU_Cleanup_Mutex, 1);
-	
+
 	}
-	
+
 }
 
 Psp2Ui::Psp2Ui(int width, int height) :
 	BaseUi() {
-	
+
 	starttick = sceKernelGetProcessTimeWide() / 1000;
 	frame = 0;
 	zoom_state = 0;
@@ -159,24 +159,24 @@ Psp2Ui::Psp2Ui(int width, int height) :
 												SCE_GXM_TEXTURE_FORMAT_A8B8G8R8);
 	Bitmap::SetFormat(Bitmap::ChooseFormat(format));
 	main_surface = Bitmap::Create(vita2d_texture_get_datap(main_texture),width, height, vita2d_texture_get_stride(main_texture), format);
-	
+
 	#ifdef SUPPORT_AUDIO
 		audio_.reset(new Psp2Audio());
 	#endif
-	
+
 	scePowerSetArmClockFrequency(444);
 	scePowerSetBusClockFrequency(222);
 	scePowerSetGpuClockFrequency(222);
 	scePowerSetGpuXbarClockFrequency(222);
-	
+
 	sceCtrlSetSamplingMode(SCE_CTRL_MODE_ANALOG);
 	sceTouchSetSamplingState(SCE_TOUCH_PORT_FRONT, SCE_TOUCH_SAMPLING_STATE_START);
-	
+
 	GPU_Mutex = sceKernelCreateSema("GPU Mutex", 0, 1, 1, NULL);
 	GPU_Cleanup_Mutex = sceKernelCreateSema("GPU Cleanup Mutex", 0, 1, 1, NULL);
 	GPU_Thread = sceKernelCreateThread("GPU Thread", &renderThread, 0x10000100, 0x10000, 0, 0, NULL);
 	sceKernelStartThread(GPU_Thread, sizeof(GPU_Thread), &GPU_Thread);
-	
+
 }
 
 Psp2Ui::~Psp2Ui() {
@@ -228,7 +228,7 @@ bool Psp2Ui::IsFullscreen() {
 }
 
 void Psp2Ui::ProcessEvents() {
-	
+
 	SceCtrlData input;
 	sceCtrlPeekBufferPositive(0, &input, 1);
 	keys[Input::Keys::Z] = (input.buttons & SCE_CTRL_CROSS);
@@ -242,24 +242,24 @@ void Psp2Ui::ProcessEvents() {
 	keys[Input::Keys::UP] = (input.buttons & SCE_CTRL_UP);
 	keys[Input::Keys::DOWN] = (input.buttons & SCE_CTRL_DOWN);
 	keys[Input::Keys::F2] = (input.buttons & SCE_CTRL_LTRIGGER);
-	
+
 	//Resolution changing support
 	bool old_state = trigger_state;
 	trigger_state = (input.buttons & SCE_CTRL_RTRIGGER);
 	if ((trigger_state != old_state) && trigger_state) zoom_state = ((zoom_state + 1) % 3);
-	
+
 	// Left analog support
 	keys[Input::Keys::JOY_AXIS_X_LEFT] = (input.lx < 50);
 	keys[Input::Keys::JOY_AXIS_X_RIGHT] = (input.lx > 170);
 	keys[Input::Keys::JOY_AXIS_Y_DOWN] = (input.ly > 170);
 	keys[Input::Keys::JOY_AXIS_Y_UP] = (input.ly < 50);
-	
+
 	// Right analog support for extra buttons
 	keys[Input::Keys::N1] = (input.ry > 170);
 	keys[Input::Keys::N3] = (input.ry < 50);
 	keys[Input::Keys::N5] = (input.rx > 170);
 	keys[Input::Keys::N9] = (input.rx < 50);
-	
+
 	// Touchpad support for shaders changes
 	SceTouchData data;
 	sceTouchPeek(SCE_TOUCH_PORT_FRONT, &data, 1);
@@ -279,7 +279,7 @@ void Psp2Ui::ProcessEvents() {
 				if (in_use_shader < 0) in_use_shader = SHADERS_NUM - 1;
 			}
 	}else touch_x_start = -1;
-	
+
 }
 
 void Psp2Ui::UpdateDisplay() {
