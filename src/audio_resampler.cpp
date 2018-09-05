@@ -1,23 +1,23 @@
 /*
- * This file is part of EasyRPG Player.
+ * This file is part of VXPRPG and based on the same file of EasyRPG Player.
  *
- * EasyRPG Player is free software: you can redistribute it and/or modify
+ * VXPRPG Player is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * EasyRPG Player is distributed in the hope that it will be useful,
+ * VXPRPG Player is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with EasyRPG Player. If not, see <http://www.gnu.org/licenses/>.
+ * along with VXPRPG Player. If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "system.h"
 
-#if defined(HAVE_LIBSPEEXDSP) || defined(HAVE_LIBSAMPLERATE) 
+#if defined(HAVE_LIBSPEEXDSP) || defined(HAVE_LIBSAMPLERATE)
 
 #include <cassert>
 #include "audio_resampler.h"
@@ -28,21 +28,21 @@
 
 /**
  * Utility function used to convert a buffer of a arbitrary AudioDecoder::Format to a float buffer
- * 
+ *
  * @param[in] wrapped_decoder The decoder from which audio samples are read
- * @param[inout] buffer The buffer which will receive the converted samples, 
+ * @param[inout] buffer The buffer which will receive the converted samples,
  *			has to be at least amount_of_samples_to_read*sizeof(float) bytes big.
  * @param[in] amount_of_samples_to_read The number of samples to read.
  * @param[in] input_samplesize The size of one sample of the decoder in it's original format - given in bytes
  * @param[in] input_format The original format of the samples
- * 
+ *
  * @return The number of converted samples - if this number is smaller than amount_of_samples_to_read the wrapped decoder has reaches it's end.
  *		If the returned value has a negative value an error occured.
  */
 inline static int DecodeAndConvertFloat(AudioDecoder * wrapped_decoder,
-										uint8_t * buffer, 
-										int amount_of_samples_to_read, 
-										const int input_samplesize, 
+										uint8_t * buffer,
+										int amount_of_samples_to_read,
+										const int input_samplesize,
 										const AudioDecoder::Format input_format){
 	float* bufferAsFloat = (float*)buffer;
 
@@ -105,21 +105,21 @@ inline static int DecodeAndConvertFloat(AudioDecoder * wrapped_decoder,
 #if defined(HAVE_LIBSPEEXDSP)
 /**
  * Utility function used to convert a buffer of a arbitrary AudioDecoder::Format to a int16 buffer
- * 
+ *
  * @param[in] wrapped_decoder The decoder from which audio samples are read
- * @param[inout] buffer The buffer which will receive the converted samples, 
+ * @param[inout] buffer The buffer which will receive the converted samples,
  *			has to be at least amount_of_samples_to_read*max(sizeof(int16_t),input_samplesize) bytes big.
  * @param[in] amount_of_samples_to_read The number of samples to read.
  * @param[in] input_samplesize The size of one sample of the decoder in it's original format - given in bytes
  * @param[in] input_format The original format of the samples
- * 
+ *
  * @return The number of converted samples - if this number is smaller than amount_of_samples_to_read the wrapped decoder has reaches it's end.
  *		If the returned value has a negative value an error occured.
  */
-inline static int DecodeAndConvertInt16(AudioDecoder * wrapped_decoder, 
-										uint8_t * buffer, 
-										int amount_of_samples_to_read, 
-										const int input_samplesize, 
+inline static int DecodeAndConvertInt16(AudioDecoder * wrapped_decoder,
+										uint8_t * buffer,
+										int amount_of_samples_to_read,
+										const int input_samplesize,
 										const AudioDecoder::Format input_format){
 	int16_t* bufferAsInt16 = (int16_t*)buffer;
 
@@ -383,24 +383,24 @@ int AudioResampler::FillBufferSameRate(uint8_t* buffer, int length) {
 	int total_output_frames = length / (output_samplesize*nr_of_channels);
 	int amount_of_data_to_read = 0;
 	int amount_of_data_read = total_output_frames*nr_of_channels;
-	
+
 	int decoded = 0;
 
 	if (input_samplesize > output_samplesize) {
 		//It is necessary to use the internal_buffer to convert the samples.
 		while (total_output_frames > 0) {
 			amount_of_data_to_read = buffer_size / input_samplesize;
-			
-			//limit amount_of_data_to_read in the last loop 
+
+			//limit amount_of_data_to_read in the last loop
 			amount_of_data_to_read = (amount_of_data_to_read > total_output_frames) ? total_output_frames : amount_of_data_to_read;
 
 			switch (output_format) {
-				case AudioDecoder::Format::F32: 
-				amount_of_data_read = DecodeAndConvertFloat(wrapped_decoder, internal_buffer, amount_of_data_to_read, input_samplesize, input_format); 
+				case AudioDecoder::Format::F32:
+				amount_of_data_read = DecodeAndConvertFloat(wrapped_decoder, internal_buffer, amount_of_data_to_read, input_samplesize, input_format);
 				break;
 			#ifdef HAVE_LIBSPEEXDSP
-				case AudioDecoder::Format::S16: 
-				amount_of_data_read = DecodeAndConvertInt16(wrapped_decoder, internal_buffer, amount_of_data_to_read, input_samplesize, input_format); 
+				case AudioDecoder::Format::S16:
+				amount_of_data_read = DecodeAndConvertInt16(wrapped_decoder, internal_buffer, amount_of_data_to_read, input_samplesize, input_format);
 				break;
 			#endif
 				default: error_message = "internal error: output_format is not convertable"; return ERROR;
@@ -428,12 +428,12 @@ int AudioResampler::FillBufferSameRate(uint8_t* buffer, int length) {
 	} else {
 		//It is possible to work inplace as length is specified for the output samplesize.
 		switch (output_format) {
-			case AudioDecoder::Format::F32: 
-			decoded = DecodeAndConvertFloat(wrapped_decoder, buffer, amount_of_data_read, input_samplesize, input_format); 
+			case AudioDecoder::Format::F32:
+			decoded = DecodeAndConvertFloat(wrapped_decoder, buffer, amount_of_data_read, input_samplesize, input_format);
 			break;
 		#ifdef HAVE_LIBSPEEXDSP
-			case AudioDecoder::Format::S16: 
-			decoded = DecodeAndConvertInt16(wrapped_decoder, buffer, amount_of_data_read, input_samplesize, input_format); 
+			case AudioDecoder::Format::S16:
+			decoded = DecodeAndConvertInt16(wrapped_decoder, buffer, amount_of_data_read, input_samplesize, input_format);
 			break;
 		#endif
 			default: error_message = "internal error: output_format is not convertable"; return ERROR;
@@ -454,16 +454,16 @@ int AudioResampler::FillBufferDifferentRate(uint8_t* buffer, int length) {
 	const int output_samplesize = GetSamplesizeForFormat(output_format);
 	//The buffer size has to be a multiple of a frame
 	const int buffer_size=sizeof(internal_buffer) - sizeof(internal_buffer)%(nr_of_channels*((input_samplesize>output_samplesize) ? input_samplesize : output_samplesize));
-	
+
 	int total_output_frames = length / (output_samplesize*nr_of_channels);
 	int amount_of_samples_to_read = 0;
 	int amount_of_samples_read = 0;
-	
+
 	uint8_t * advanced_input_buffer = internal_buffer;
 	int unused_frames = 0;
 	int empty_buffer_space = 0;
 	int error = 0;
-	
+
 	#ifdef HAVE_LIBSPEEXDSP
 		spx_uint32_t numerator = 0;
 		spx_uint32_t denominator = 0;
@@ -473,7 +473,7 @@ int AudioResampler::FillBufferDifferentRate(uint8_t* buffer, int length) {
 		//Calculate how much frames of the last cycle are unused - to reuse them
 		unused_frames = conversion_data.input_frames - conversion_data.input_frames_used;
 		empty_buffer_space = buffer_size / output_samplesize - unused_frames*nr_of_channels;
-		
+
 		advanced_input_buffer = internal_buffer;
 
 		//If there is still unused data in the input_buffer order it to the front
@@ -522,10 +522,10 @@ int AudioResampler::FillBufferDifferentRate(uint8_t* buffer, int length) {
 				conversion_data.ratio_num = numerator;
 				conversion_data.ratio_denom = denominator;
 			}
-			
+
 			//A pitfall from libspeexdsp if the output buffer is defined to big - everything stutters -achieved good values with the same size as the input buffer for a maximum
 			conversion_data.output_frames_gen=(conversion_data.input_frames<conversion_data.output_frames_gen) ? conversion_data.input_frames :conversion_data.output_frames_gen;
-			
+
 			switch (output_format) {
 			case Format::F32:
 				error = speex_resampler_process_interleaved_float(conversion_state, (float*)internal_buffer, &conversion_data.input_frames_used, (float*)buffer, &conversion_data.output_frames_gen);
@@ -535,7 +535,7 @@ int AudioResampler::FillBufferDifferentRate(uint8_t* buffer, int length) {
 				break;
 			default: error_message = "internal error: output_format is not convertable"; return ERROR;
 			}
-			
+
 			if (error != 0) {
 				error_message = speex_resampler_strerror(error);
 				return ERROR;
@@ -565,7 +565,7 @@ int AudioResampler::FillBufferDifferentRate(uint8_t* buffer, int length) {
 
 		if ((conversion_data.input_frames == 0 && conversion_data.output_frames_gen <= conversion_data.output_frames) || conversion_data.output_frames_gen == 0) {
 			finished = true;
-			//There is nothing left to convert - return how much samples (in bytes) are converted! 
+			//There is nothing left to convert - return how much samples (in bytes) are converted!
 			return length - total_output_frames*(output_samplesize*nr_of_channels);
 		}
 	}
