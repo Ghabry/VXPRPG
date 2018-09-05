@@ -23,6 +23,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <zlib.h>
 
 #ifdef _WIN32
 #  define WIN32_LEAN_AND_MEAN
@@ -56,6 +57,12 @@
 #include "player.h"
 #include "utils.h"
 #include "version.h"
+
+#include "rice/String.hpp"
+#include "binding_util.h"
+#include "ruby_handler.h"
+
+extern const char module_rpg1[];
 
 namespace Player {
 	bool exit_flag;
@@ -197,6 +204,125 @@ void Player::Run() {
 	while (appletMainLoop() && (Graphics::IsTransitionPending() || Scene::instance->type != Scene::Null))
 		MainLoop();
 #else
+	using namespace Rice;
+
+	RubyHandler::Init();
+
+	rb_eval_string(module_rpg1);
+
+	VALUE scriptArray;
+
+	/* We checked if Scripts.rxdata exists, but something might
+	 * still go wrong */
+	VALUE marsh = rb_const_get(rb_cObject, rb_intern("Marshal"));
+	VALUE file = rb_const_get(rb_cObject, rb_intern("File"));
+	Object marsh_obj(marsh);
+	Object file_obj(file);
+
+	escape_symbol = "\\";
+	FileFinder::SetDirectoryTree(FileFinder::CreateDirectoryTree(Main_Data::GetProjectPath()));
+	String str(FileFinder::FindDefault("Data", "Scripts.rxdata"));
+
+	Object file_handle = file_obj.call("open", str.c_str());
+
+	Object res = marsh_obj.call("load", file_handle);
+	scriptArray = res.value();
+
+	if (!RB_TYPE_P(scriptArray, RUBY_T_ARRAY))
+	{
+		Output::Error("Failed to read script data");
+		return;
+	}
+
+	rb_gv_set("$RGSS_SCRIPTS", scriptArray);
+
+	long scriptCount = RARRAY_LEN(scriptArray);
+
+	std::vector<unsigned char> decodeBuffer;
+	decodeBuffer.resize(0x1000);
+
+	for (long i = 0; i < scriptCount; ++i)
+	{
+		VALUE script = rb_ary_entry(scriptArray, i);
+
+		if (!RB_TYPE_P(script, RUBY_T_ARRAY))
+			continue;
+
+		VALUE scriptName   = rb_ary_entry(script, 1);
+		VALUE scriptString = rb_ary_entry(script, 2);
+
+		int result = Z_OK;
+		unsigned long bufferLen;
+
+		while (true)
+		{
+			unsigned char *bufferPtr = reinterpret_cast<unsigned char*>(decodeBuffer.data());
+			const unsigned char *sourcePtr =
+					reinterpret_cast<const unsigned char*>(RSTRING_PTR(scriptString));
+
+			bufferLen = decodeBuffer.size();
+
+			result = uncompress(bufferPtr, &bufferLen,
+								sourcePtr, RSTRING_LEN(scriptString));
+
+			bufferPtr[bufferLen] = '\0';
+
+			if (result != Z_BUF_ERROR)
+				break;
+
+			decodeBuffer.resize(decodeBuffer.size()*2);
+		}
+
+		if (result != Z_OK)
+		{
+			static char buffer[256];
+			snprintf(buffer, sizeof(buffer), "Error decoding script %ld: '%s'",
+					 i, RSTRING_PTR(scriptName));
+
+			Output::Error(buffer);
+		}
+
+		rb_ary_store(script, 3, rb_str_new_cstr(reinterpret_cast<const char*>(decodeBuffer.data())));
+	}
+
+	VALUE exc = rb_gv_get("$!");
+	if (exc != Qnil)
+		return;
+
+	while (true)
+	{
+		for (long i = 0; i < scriptCount; ++i)
+		{
+			VALUE script = rb_ary_entry(scriptArray, i);
+			VALUE scriptDecoded = rb_ary_entry(script, 3);
+			VALUE string = rb_str_new(RSTRING_PTR(scriptDecoded),
+										 RSTRING_LEN(scriptDecoded));
+
+			VALUE fname;
+			const char *scriptName = RSTRING_PTR(rb_ary_entry(script, 1));
+			char buf[512];
+			int len;
+			len = snprintf(buf, sizeof(buf), "", i);
+
+			int state;
+
+			String s = String(string);
+			printf(s.c_str());
+			printf("\n");
+			rb_eval_string(s.c_str());
+			//evalString(string, fname, &state);
+
+			//if (state)
+			//	break;
+		}
+
+		/*VALUE exc = rb_gv_get("$!");
+		if (rb_obj_class(exc) != getRbData()->exc[Reset])
+			break;
+
+		processReset();*/
+	}
+
 	while (true)
 		MainLoop();
 #endif

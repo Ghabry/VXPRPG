@@ -39,6 +39,10 @@
 
 const Opacity Opacity::opaque;
 
+Bitmap::Bitmap() {
+
+}
+
 BitmapRef Bitmap::Create(int width, int height, const Color& color) {
 	BitmapRef surface = Bitmap::Create(width, height, true);
 	surface->Fill(color);

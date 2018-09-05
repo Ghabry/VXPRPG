@@ -66,6 +66,11 @@ add_library(${PROJECT_NAME}
 	src/util_win.cpp
 	src/weather.cpp
 	src/window.cpp
+
+	src/module_rpg.cpp
+	src/ruby_handler.cpp
+	src/table.cpp
+	src/viewport.cpp
 )
 
 include(CMakeDependentOption)
